@@ -25,6 +25,8 @@ import numpy as np
 
 # nlp library to analyse sentiment
 import nltk
+#nltk.download('vader_lexicon')
+
 import pytz
 from nltk.sentiment import SentimentIntensityAnalyzer
 
@@ -34,7 +36,7 @@ from binance.enums import *
 from binance.exceptions import BinanceAPIException, BinanceOrderException
 
 # used for binance websocket
-from binance.websockets import BinanceSocketManager
+from binance.websocket import BinanceSocketManager
 from twisted.internet import reactor
 
 # used for executing the code
@@ -44,14 +46,18 @@ from itertools import count
 from timeit import default_timer as timer
 
 # Use testnet (change to True) or live (change to False)?
-testnet = True
+testnet = False #True
 
 # get binance key and secret from environment variables for testnet and live
 api_key_test = os.getenv('binance_api_stalkbot_testnet')
 api_secret_test = os.getenv('binance_secret_stalkbot_testnet')
 
+
 api_key_live = os.getenv('binance_api_stalkbot_live')
+
 api_secret_live = os.getenv('binance_secret_stalkbot_live')
+
+
 
 # Authenticate with the client
 if testnet:
@@ -80,15 +86,26 @@ keywords = {
     'XRP': ['ripple', 'xrp', 'XRP', 'Ripple', 'RIPPLE'],
     'BTC': ['BTC', 'bitcoin', 'Bitcoin', 'BITCOIN'],
     'XLM': ['Stellar Lumens', 'XLM'],
-    #'BCH': ['Bitcoin Cash', 'BCH'],
+    'BCH': ['Bitcoin Cash', 'BCH'],
     'ETH': ['ETH', 'Ethereum'],
     'BNB' : ['BNB', 'Binance Coin'],
-    'LTC': ['LTC', 'Litecoin']
+    'LTC': ['LTC', 'Litecoin'],
+    'DOT': ['DOT', 'Polkadot', 'Polka dot'],
+    'XMR': ['XMR', 'Monero', 'monero'],
+    'CAKE': ['CAKE', 'Pancake Swap', 'pancake'],
+    'BRD': ['BRD', 'Bread'],
+    'DOGE': ['DOGE', 'Dogecoin'],
+    'ADA': ['Cardano', 'ADA'],
+    'LINK': ['LINK', 'Chainlink'],
+    'THETA': ['THETA'],
+    'TRX': ['TRX', 'TRON'],
+    'UNI': ['UNI', 'Uniswap'],
+    '1INCH': ['1INCH'],
     }
-
+print(keywords)
 # The Buy amount in the PAIRING symbol, by default USDT
 # 100 will for example buy the equivalent of 100 USDT in Bitcoin.
-QUANTITY = 100
+QUANTITY = 30
 
 # define what to pair each coin to
 # AVOID PAIRING WITH ONE OF THE COINS USED IN KEYWORDS
@@ -97,8 +114,8 @@ PAIRING = 'USDT'
 # define how positive the news should be in order to place a trade
 # the number is a compound of neg, neu and pos values from the nltk analysis
 # input a number between -1 and 1
-SENTIMENT_THRESHOLD = 0
-NEGATIVE_SENTIMENT_THRESHOLD = 0
+SENTIMENT_THRESHOLD = 0.37
+NEGATIVE_SENTIMENT_THRESHOLD = -0.7
 
 # define the minimum number of articles that need to be analysed in order
 # for the sentiment analysis to qualify for a trade signal
@@ -111,7 +128,7 @@ REPEAT_EVERY = 60
 
 # define how old an article can be to be included
 # in hours
-HOURS_PAST = 24
+HOURS_PAST = 30
 
 
 ############################################
@@ -217,9 +234,9 @@ def calculate_volume():
         return volume
 
 
-# load the csv file containg top 100 crypto feeds
+# load the csv file containg top 100 RSS crypto feeds
 # want to scan other websites?
-# Simply add the RSS Feed url to the Crypto feeds.csv file
+# Simply add the Feed url to the Crypto feeds.csv file
 with open('Crypto feeds.csv') as csv_file:
 
     # open the file
@@ -231,7 +248,7 @@ with open('Crypto feeds.csv') as csv_file:
     # create empty list
     feeds = []
 
-    # add each row cotaining RSS url to feeds list
+    # add each row cotaining url to feeds list
     for row in csv_reader:
         feeds.append(row[0])
 
@@ -385,6 +402,15 @@ def buy(compiled_sentiment, headlines_analysed):
     '''Check if the sentiment is positive and keyword is found for each handle'''
     volume = calculate_volume()
     for coin in compiled_sentiment:
+        print( "sentiment")
+        print(compiled_sentiment[coin] )
+
+        print( "n headlines")
+        print(headlines_analysed[coin]  )
+
+
+        print( "coins_in_hand[coin]")
+        print(coins_in_hand[coin] )
 
 
         # check if the sentiment and number of articles are over the given threshold
